@@ -17,6 +17,8 @@
             padding: 15px;
             max-width: 800px;
             margin: 0 auto;
+            /* 增加页面最小高度，防止内容过少 */
+            min-height: 100vh;
         }
 
         h1 {
@@ -76,7 +78,7 @@
         button {
             background: #3498db;
             color: #fff;
-            transition: background 0.2;
+            transition: background 0.2s;
         }
 
         button:hover {
@@ -92,7 +94,7 @@
 
         /* 舒尔特方格容器 */
         .grid-container {
-            margin: 0 auto;
+            margin: 0 auto 30px; /* 底部留出外边距，和下方文字隔开 */
             display: grid;
             gap: 6px;
             background: #fff;
@@ -119,25 +121,58 @@
             color: #fff;
         }
 
-        /* 干扰遮罩层 */
+        /* 方格下方补充文字区域 */
+        .grid-footer-text {
+            background: #ffffff;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            line-height: 1.7;
+            color: #444;
+            font-size: 15px;
+            margin-bottom: 40px;
+        }
+
+        /* 干扰遮罩层 新增动画 */
         .disturb-mask {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.75);
             display: none;
             align-items: center;
             justify-content: center;
             z-index: 9999;
+            animation: maskFadeIn 0.3s ease-out forwards;
         }
 
+        /* 图片抖动缩放闪烁动画 */
         .disturb-img {
             width: 80%;
             height: auto;
             max-height: 80vh;
             object-fit: contain;
+            animation: shakeScale 3.6s ease-in-out infinite;
+        }
+
+        /* 遮罩淡入 */
+        @keyframes maskFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* 图片抖动+轻微缩放干扰动画，全程3.6秒 */
+        @keyframes shakeScale {
+            0% { transform: scale(0.85); opacity: 0.7; }
+            15% { transform: scale(1.05) rotate(-2deg); opacity: 1; }
+            30% { transform: scale(0.95) rotate(2deg); }
+            45% { transform: scale(1.02) rotate(-1deg); }
+            60% { transform: scale(0.98) rotate(1deg); }
+            75% { transform: scale(1.03); }
+            90% { transform: scale(0.97); opacity: 0.9; }
+            100% { transform: scale(0.9); opacity: 0; }
         }
     </style>
 </head>
@@ -189,9 +224,16 @@
 
     <div class="grid-container" id="grid"></div>
 
+    <!-- 方格下方新增文字，撑起页面底部空间 -->
+    <div class="grid-footer-text">
+        <strong>训练小贴士：</strong>训练时眼睛平视方格中心，只用余光扫视四周数字，不要逐行扫视。本训练会在开始12秒后出现干扰画面与音效，考验抗干扰专注力。
+        <br><br>
+        训练结束后可多次重置反复练习，长期练习能有效提升专注时长与抗干扰能力；若干扰音效无法自动播放，先点击页面任意位置再开始训练即可。
+    </div>
+
     <!-- 干扰层：图片+音效 -->
     <div class="disturb-mask" id="disturbMask">
-        <img src="./夺舍.png" class="disturb-img" alt="花来">
+        <img src="./夺舍.png" class="disturb-img" alt="干扰图片">
     </div>
     <audio id="disturbAudio" preload="auto">
         <source src="./夺舍.mp3" type="audio/mpeg">
@@ -277,7 +319,7 @@
             }
         }
 
-        // 开始计时 + 12秒触发干扰
+        // 开始计时 + 12秒触发干扰，显示时长改为3.6秒
         function startTimer() {
             second = 0;
             timeSpan.innerText = '0';
@@ -289,17 +331,17 @@
                 timeSpan.innerText = second;
             }, 1000);
 
-            // 12秒后弹出干扰图片+播放音效，2秒后消失
+            // 12秒后弹出干扰图片+播放音效，3600毫秒=3.6秒后消失
             disturbTimer = setTimeout(() => {
                 disturbMask.style.display = 'flex';
                 disturbAudio.currentTime = 0;
                 disturbAudio.play().catch(e => console.log("音效播放限制：", e));
 
-                // 2秒后隐藏
+                // 3.6秒后隐藏遮罩、暂停音频
                 setTimeout(() => {
                     disturbMask.style.display = 'none';
                     disturbAudio.pause();
-                }, 3000);
+                }, 3600);
             }, 12000);
         }
 
